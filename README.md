@@ -20,21 +20,21 @@ pytorch 1.2
 ```
 SSIM Performance Compare
 
-testing losser1
-cuda time 30889.60546875
-perf_counter time 30.17721843899926
+Testing ssim2
+cuda time:        	 31086.12109375
+perf_counter time:	 30.369310373964254
 
-testing losser2
-cuda time 12290.21875
-perf_counter time 12.268219146993943
+Testing ssim3
+cuda time:        	 12339.9169921875
+perf_counter time:	 12.317489090957679
 
-testing reference
-cuda time 10557.4453125
-perf_counter time 10.119612983980915
+Testing reference
+cuda time:        	 10347.5712890625
+perf_counter time:	 9.909248579991981
 
-testing ours
-cuda time 10825.990234375
-perf_counter time 10.806820502999472
+Testing ours
+cuda time:        	 10345.275390625
+perf_counter time:	 9.90704761899542
 
 ```
 
@@ -45,21 +45,21 @@ pytorch 1.2
 ```
 MS_SSIM Performance Compare
 
-testing losser1
-cuda time 42572.3828125
-perf_counter time 42.53371593600605
+Testing ssim1
+cuda time:        	 42780.546875
+perf_counter time:	 42.74076483398676
 
-testing losser2
-cuda time 17671.06640625
-perf_counter time 17.65674895097618
+Testing ssim3
+cuda time:        	 17724.392578125
+perf_counter time:	 17.709311129001435
 
-testing reference
-cuda time 14982.9619140625
-perf_counter time 14.969881597993663
+Testing reference
+cuda time:        	 14692.154296875
+perf_counter time:	 14.678562582994346
 
-testing ours
-cuda time 14964.0771484375
-perf_counter time 14.950804635009263
+Testing ours
+cuda time:        	 14446.7724609375
+perf_counter time:	 14.433157603023574
 
 ```
 
