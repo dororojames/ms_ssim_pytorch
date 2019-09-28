@@ -123,5 +123,5 @@ MS-SSIM
 # References
 https://github.com/VainF/pytorch-msssim  
 https://github.com/Po-Hsun-Su/pytorch-ssim  
-https://github.com/lizhengwei1992/MS_SSIM_pytorch
+https://github.com/lizhengwei1992/MS_SSIM_pytorch  
 https://github.com/One-sixth/ms_ssim_pytorch
