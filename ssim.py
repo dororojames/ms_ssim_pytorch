@@ -12,7 +12,8 @@ from torch import arange, exp, mean, prod, stack, sum
 def rerange(tensor):
     if torch.max(tensor) > 1.5:
         return tensor
-    return torch.round(tensor * 255.)
+    scaled = tensor * 255.
+    return scaled - (scaled - scaled.round()).detach()
 
 
 @torch.jit.script
@@ -24,8 +25,8 @@ def create_window(window_size: int, sigma: float, channel: int):
     :param channel: input channel
     :return: 1D kernel
     '''
-    coords = arange(window_size, dtype=torch.float)
-    coords -= window_size // 2
+    half_window = window_size // 2
+    coords = arange(-half_window, half_window+1, dtype=torch.float)
 
     g = exp(-(coords ** 2) / (2 * sigma ** 2))
     g /= g.sum()
