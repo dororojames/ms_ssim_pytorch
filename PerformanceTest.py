@@ -13,23 +13,20 @@ from ssim import MS_SSIM, SSIM
 
 def SimpleTest():
     print('Simple Test')
-    im = torch.randint(0, 255, (5, 3, 256, 256),
-                       dtype=torch.float, device='cuda')
+    im = torch.randint(0, 255, (5, 3, 256, 256)).float().cuda()
     img1 = im / 255
     img2 = img1 * 0.5
 
     losser = SSIM(data_range=1.).cuda()
     loss = losser(img1, img2)
     print(loss)
-    loss = loss.mean()
 
     losser2 = MS_SSIM(data_range=1.).cuda()
     loss2 = losser2(img1, img2)
     print(loss2)
-    loss2 = loss2.mean()
 
-    print(loss.item())
-    print(loss2.item())
+    print(loss.mean().item())
+    print(loss2.mean().item())
 
 
 def Training(t_im, ssim_type="SSIM", out_test_video=False, video_use_gif=False):
@@ -51,13 +48,11 @@ def Training(t_im, ssim_type="SSIM", out_test_video=False, video_use_gif=False):
     rand_im.requires_grad = True
     if ssim_type == "SSIM":
         losser = SSIM(data_range=1., channel=t_im.size(1)).cuda()
-        lr = 0.005
     else:
         losser = MS_SSIM(data_range=1., channel=t_im.size(1)).cuda()
-        lr = 0.0005
-    optim = torch.optim.Adam([rand_im], lr, eps=1e-8)
+    optim = torch.optim.Adam([rand_im], 0.005, eps=1e-8)
     ssim_score, epoch = 0, 0
-    while ssim_score < 0.995:
+    while ssim_score < 0.999:
         optim.zero_grad()
         loss = losser(rand_im, t_im)
         (-loss).sum().backward()
@@ -88,23 +83,16 @@ def Training(t_im, ssim_type="SSIM", out_test_video=False, video_use_gif=False):
         video.close()
 
 
-def TrainingTest():
+def TrainingTest(*args, **kwarg):
     print('Training Test')
-    out_test_video = False
-    # 最好不要直接输出gif图，会非常大，最好先输出mkv文件后用ffmpeg转换到GIF
-    video_use_gif = False
-
     im = cv2.imread('test_img1.jpg', 1)
     t_im = torch.from_numpy(im).cuda().permute(2, 0, 1).float()[None] / 255.
-    Training(t_im, "SSIM", out_test_video=out_test_video,
-             video_use_gif=video_use_gif)
-    Training(t_im, "MS_SSIM", out_test_video=out_test_video,
-             video_use_gif=video_use_gif)
+    Training(t_im, "SSIM", *args, **kwarg)
+    Training(t_im, "MS_SSIM", *args, **kwarg)
 
 
 def PerformanceTesting(losser):
-    a = torch.randint(0, 255, (20, 3, 256, 256),
-                      dtype=torch.float32, device='cuda') / 255.
+    a = torch.randint(0, 255, (20, 3, 256, 256)).float().cuda() / 255.
     b = a * 0.5
     a.requires_grad = True
     b.requires_grad = True
@@ -140,19 +128,15 @@ def PerformanceCompare(ssim_type="SSIM"):
         losser1 = ssim2.SSIM(window_size=11, size_average=False)
         losser2 = ssim3.SSIM(win_size=11, win_sigma=1.5, data_range=1.,
                              size_average=False, channel=3)
-        reference = ssim4.SSIM(window_size=11, window_sigma=1.5,
-                               data_range=1., channel=3, use_padding=False)
-        ours = SSIM(window_size=11, window_sigma=1.5, scale=True,
-                    data_range=1., channel=3, use_padding=False)
+        reference = ssim4.SSIM(data_range=1.)
+        ours = SSIM(data_range=1.)
         names = ["losser2", "losser3", "reference", "ours"]
     else:
         losser1 = ssim1.MS_SSIM(size_average=False, max_val=1.)
         losser2 = ssim3.MS_SSIM(win_size=11, win_sigma=1.5,
                                 data_range=1., size_average=False, channel=3)
-        reference = ssim4.MS_SSIM(window_size=11, window_sigma=1.5,
-                                  data_range=1., channel=3, use_padding=False)
-        ours = MS_SSIM(window_size=11, window_sigma=1.5, scale=True,
-                       data_range=1., channel=3, use_padding=False)
+        reference = ssim4.MS_SSIM(data_range=1.)
+        ours = MS_SSIM(data_range=1.)
         names = ["losser1", "losser3", "reference", "ours"]
 
     for idx, losser in enumerate([losser1, losser2, reference, ours]):
@@ -164,6 +148,6 @@ def PerformanceCompare(ssim_type="SSIM"):
 if __name__ == '__main__':
     torch.cuda.manual_seed_all(0)
     SimpleTest()
-    TrainingTest()
+    TrainingTest(out_test_video=True, video_use_gif=False)
     # ShowPerformance()
     PerformanceCompare("SSIM")

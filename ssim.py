@@ -9,14 +9,6 @@ from torch import arange, exp, mean, prod, stack, sum
 
 
 @torch.jit.script
-def rerange(tensor):
-    if torch.max(tensor) > 1.5:
-        return tensor
-    scaled = tensor * 255.
-    return scaled - (scaled - scaled.round()).detach()
-
-
-@torch.jit.script
 def create_window(window_size: int, sigma: float, channel: int):
     '''
     Create 1-D gauss kernel
@@ -121,9 +113,9 @@ def ms_ssim(X, Y, window, data_range: float, weights, use_padding: bool = False)
 
 
 class SSIM(torch.jit.ScriptModule):
-    __constants__ = ['scale', 'data_range', 'use_padding', 'reduction']
+    __constants__ = ['data_range', 'use_padding', 'reduction']
 
-    def __init__(self, window_size=11, window_sigma=1.5, scale=True, data_range=255., channel=3, use_padding=False, reduction="none"):
+    def __init__(self, window_size=11, window_sigma=1.5, data_range=255., channel=3, use_padding=False, reduction="none"):
         '''
         :param window_size: the size of gauss kernel
         :param window_sigma: sigma of normal distribution
@@ -137,27 +129,24 @@ class SSIM(torch.jit.ScriptModule):
         assert window_size % 2 == 1, 'Window size must be odd.'
         window = create_window(window_size, window_sigma, channel)
         self.register_buffer('window', window)
-        self.scale = scale
-        self.data_range = 255. if scale else data_range
+        self.data_range = data_range
         self.use_padding = use_padding
         self.reduction = reduction
 
     @torch.jit.script_method
     def forward(self, input, target):
-        if self.scale:
-            input, target = rerange(input), rerange(target)
-
-        ret = ssim(input, target, window=self.window,
-                   data_range=self.data_range, use_padding=self.use_padding)[0]
+        ret = ssim(input, target, self.window,
+                   self.data_range, self.use_padding)[0]
         if self.reduction != 'none':
             ret = mean(ret) if self.reduction == 'mean' else sum(ret)
         return ret
 
 
 class MS_SSIM(torch.jit.ScriptModule):
-    __constants__ = ['scale', 'data_range', 'use_padding', 'reduction']
+    __constants__ = ['data_range', 'use_padding', 'reduction']
 
-    def __init__(self, window_size=11, window_sigma=1.5, scale=True, data_range=255., channel=3, use_padding=False, weights=None, levels=None, reduction="none"):
+    def __init__(self, window_size=11, window_sigma=1.5, data_range=255., channel=3, use_padding=False, reduction="none",
+                 weights=[0.0448, 0.2856, 0.3001, 0.2363, 0.1333], levels=None):
         '''
         :param window_size: the size of gauss kernel
         :param window_sigma: sigma of normal distribution
@@ -171,18 +160,14 @@ class MS_SSIM(torch.jit.ScriptModule):
         '''
         super().__init__()
         assert window_size % 2 == 1, 'Window size must be odd.'
-        self.scale = scale
-        self.data_range = 255. if scale else data_range
+        self.data_range = data_range
         self.use_padding = use_padding
         self.reduction = reduction
 
         window = create_window(window_size, window_sigma, channel)
         self.register_buffer('window', window)
 
-        if weights is None:
-            weights = [0.0448, 0.2856, 0.3001, 0.2363, 0.1333]
         weights = torch.tensor(weights, dtype=torch.float)
-
         if levels is not None:
             weights = weights[:levels]
             weights = weights / weights.sum()
@@ -191,11 +176,8 @@ class MS_SSIM(torch.jit.ScriptModule):
 
     @torch.jit.script_method
     def forward(self, input, target):
-        if self.scale:
-            input, target = rerange(input), rerange(target)
-
-        ret = ms_ssim(input, target, window=self.window, data_range=self.data_range,
-                      weights=self.weights, use_padding=self.use_padding)
+        ret = ms_ssim(input, target, self.window, self.data_range,
+                      self.weights, self.use_padding)
         if self.reduction != 'none':
             ret = mean(ret) if self.reduction == 'mean' else sum(ret)
         return ret
