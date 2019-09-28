@@ -111,14 +111,14 @@ print(loss2.item())
 # Animation
 GIF is a bit big. Loading may take some time.  
 Or you can download the mkv video file directly to view it, smaller and smoother.  
-https://github.com/dororojames/ms_ssim_pytorch/ssim_test.mkv  
-https://github.com/dororojames/ms_ssim_pytorch/ms_ssim_test.mkv  
+https://github.com/dororojames/ms_ssim_pytorch/blob/master/ssim_test.mkv
+https://github.com/dororojames/ms_ssim_pytorch/blob/master/ms_ssim_test.mkv  
 
 SSIM  
-![ssim](https://github.com/dororojames/ms_ssim_pytorch/ssim_test.gif)
+![ssim](https://github.com/dororojames/ms_ssim_pytorch/blob/master/ssim_test.gif)
 
 MS-SSIM  
-![ms-ssim](https://github.com/dororojames/ms_ssim_pytorch/ms_ssim_test.gif)
+![ms-ssim](https://github.com/dororojames/ms_ssim_pytorch/blob/master/ms_ssim_test.gif)
 
 # References
 https://github.com/VainF/pytorch-msssim  
